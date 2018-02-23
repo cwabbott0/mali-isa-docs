@@ -1,7 +1,7 @@
 # mali-isa-docs
 A collection of reverse-engineered documentation for the instruction sets for various generations of Mali GPU's. This is mostly my own work, and since it is not "official," there may be inaccuracies, missing things, etc.
 
-Documentation for Bifrost is [here](Bifrost.md).
+Documentation for Bifrost is [here](Bifrost.adoc).
 
 Documentation for Midgard [here](Midgard.md).
 
