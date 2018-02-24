@@ -5,4 +5,4 @@ Documentation for Bifrost is [here](Bifrost.adoc).
 
 Documentation for Midgard [here](Midgard.md).
 
-Midgard wasn't a unified architecture, so there are two completely different engines for vertex shaders and fragment shaders, the former called the GP and the latter the PP. Documentation for the GP is [here](Utgard-GP.md) and documentation for the PP is [here](Utgard-PP.md).
+Utgard wasn't a unified architecture, so there are two completely different engines for vertex shaders and fragment shaders, the former called the GP and the latter the PP. Documentation for the GP is [here](Utgard-GP.md) and documentation for the PP is [here](Utgard-PP.md).
