@@ -113,6 +113,7 @@ The vector multiply, add, and LUT ALU's share the same instruction format.
         otherwise:
             25: input 2 half-register selection (high or low)
             26: unused
+        27: input 2 half-register (when output is a full register)
         28-35: input 2 swizzle
     36-37: output size override
         0 - half, write to lower half
