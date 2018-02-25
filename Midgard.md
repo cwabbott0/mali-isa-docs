@@ -153,7 +153,7 @@ The scalar multiply and add ALU's have the same format as well.
     otherwise:
         14: input 2 abs
         15: input 2 negate
-        16: unknown
+        16: input 2 size (0 = half, 1 = full)
         17-18: input 2 component
         19-24: unknown
     25: unknown
@@ -162,6 +162,9 @@ The scalar multiply and add ALU's have the same format as well.
         1 - clamp positive
         2 - output integer
         3 - saturate
+    28: output size
+        0 - half
+        1 - full
     if output size = full
         29: unused
         30-31: output component
