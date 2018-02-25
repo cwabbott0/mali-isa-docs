@@ -1,4 +1,4 @@
-# T6xx Architecture
+# Utgard Architecture
 
 ## Publicly available information
 
@@ -66,8 +66,8 @@ The first (32-bit) word is a control word which, in addition to the usual 8-bit 
     21: vector add ALU (48 bits)
     23: scalar multiply ALU (32 bits)
     25: LUT / multiply ALU 2 (48 bits)
-    26: output write/discard? (16 bits)
-    27: branch (48 bits)
+    26: compact output write/branch (16 bits)
+    27: output write/branch (48 bits)
 
 It's not clear why only every other bit is used for the ALU's (fp64?).
 
@@ -218,6 +218,24 @@ Pseudocode for how atan/atan2 is implemented:
     float result = fatan_pt2(temp1.x, temp1.z * temp1.w);
 
 To do atan instead of atan2, replace y with 1.0. asin and acos are implemented just like in the Mali 200 PP.
+
+### Compact branch/framebuffer
+
+This field is used for encoding branches, as well as framebuffer writes. So far, we've only figured out branches.
+
+    0-2: unknown/opcode?
+        010 for conditional branches
+    3-6: Type of instruction to branch to
+        Note: this complements the next-instruction-type field that every instruction has, which gives the type of the next instruction to execute if there is no branching.
+    7-13: Offset to branch to
+        This gives the low 7 bits of the offset in units of quadwords (16 bytes) relative to the next instruction that would be executed.
+    14-15: Opcode?/sign extending
+        00 - unknown
+        01 - extend branch offset with all 1's (use for negative offsets)
+        10 - extend branch offset with all 0's (use for positive offsets)
+        11 - unknown, seen used for framebuffer writes.
+
+I'm a little confused about the offset bit -- the way I've described things, it should be possible to encode positive branch offsets of at most 2^7 - 1 quadwords. But the blob refuses to encode branch offsets of more than 2^6 - 1 quadwords, switching to the larger branch encoding instead, as if the offset field is sign-extended. But then it also sets high two bits differently depending on whether the branch offset is positive or negative, which seems redundant. Is the blob just being inefficient, or am I missing something?
 
 ## Load/store words
 
