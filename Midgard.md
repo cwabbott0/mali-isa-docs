@@ -221,19 +221,32 @@ To do atan instead of atan2, replace y with 1.0. asin and acos are implemented j
 
 ### Compact branch/framebuffer
 
-This field is used for encoding branches, as well as framebuffer writes. So far, we've only figured out branches.
+This field is used for encoding branches, as well as framebuffer writes. So far, we've only figured out branches. The branch offsets possible are rather limited. If you need a greater offset, you need to use the normal encoding instead. The bottom three bits are the opcode:
 
-    0-2: unknown/opcode?
-        010 for conditional branches
+    001 - unconditional branch
+    010 - conditional branch
+    111 - write to framebuffer
+
+The rest of the 16-bit word is different depending on the opcode. For conditional branches, it looks like this:
+
+    0-2: opcode (=010)
     3-6: Type of instruction to branch to
         Note: this complements the next-instruction-type field that every instruction has, which gives the type of the next instruction to execute if there is no branching.
     7-13: Offset to branch to
         This gives the low 7 bits of the offset in units of quadwords (16 bytes) relative to the next instruction that would be executed. The offset is sign-extended to the full range.
-    14-15: Opcode?
-        00 - branch unconditionally
+    14-15: Branch condition
         01 - branch if r31.w is false
         10 - branch if r31.w is true
-        11 - framebuffer write
+
+For unconditional branches, it looks like this:
+
+    0-2: opcode (=001)
+    3-6: Type of instruction to branch to
+        Same as conditional branches
+    7-8: unknown
+        Always 01 so far.
+    7-13: Offset to branch to
+        Unlike for conditional branches, this is zero extended. Only positive offsets are possible. For negative offsets, use conditional branches with an always-true condition. Yes, really.
 
 ## Load/store words
 
