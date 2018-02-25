@@ -228,14 +228,12 @@ This field is used for encoding branches, as well as framebuffer writes. So far,
     3-6: Type of instruction to branch to
         Note: this complements the next-instruction-type field that every instruction has, which gives the type of the next instruction to execute if there is no branching.
     7-13: Offset to branch to
-        This gives the low 7 bits of the offset in units of quadwords (16 bytes) relative to the next instruction that would be executed.
-    14-15: Opcode?/sign extending
-        00 - unknown
-        01 - extend branch offset with all 1's (use for negative offsets)
-        10 - extend branch offset with all 0's (use for positive offsets)
-        11 - unknown, seen used for framebuffer writes.
-
-I'm a little confused about the offset bit -- the way I've described things, it should be possible to encode positive branch offsets of at most 2^7 - 1 quadwords. But the blob refuses to encode branch offsets of more than 2^6 - 1 quadwords, switching to the larger branch encoding instead, as if the offset field is sign-extended. But then it also sets high two bits differently depending on whether the branch offset is positive or negative, which seems redundant. Is the blob just being inefficient, or am I missing something?
+        This gives the low 7 bits of the offset in units of quadwords (16 bytes) relative to the next instruction that would be executed. The offset is sign-extended to the full range.
+    14-15: Opcode?
+        00 - branch unconditionally
+        01 - branch if r31.w is false
+        10 - branch if r31.w is true
+        11 - framebuffer write
 
 ## Load/store words
 
