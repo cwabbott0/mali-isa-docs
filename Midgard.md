@@ -245,7 +245,7 @@ For unconditional branches, it looks like this:
         Same as conditional branches
     7-8: unknown
         Always 01 so far.
-    7-13: Offset to branch to
+    9-15: Offset to branch to
         Unlike for conditional branches, this is zero extended. Only positive offsets are possible. For negative offsets, use conditional branches with an always-true condition. Yes, really.
 
 ## Load/store words
