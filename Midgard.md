@@ -1,4 +1,4 @@
-# Utgard Architecture
+# Midgard Architecture
 
 ## Publicly available information
 
