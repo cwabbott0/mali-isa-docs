@@ -24,6 +24,8 @@ ARM has been a lot more open this time with the architecture behind the T6xx. Fo
 
 [Embedded opcode within an intermediate value passed between instructions](https://www.google.com/patents/US20120204006?hl=en&sa=X&ei=p5r0UbSJHtXh4AOqo4HYCw&ved=0CHIQ6AEwCTgK)
 
+[Processor with a flag to switch between using dedicated hardware to execute a function and executing the function in software](https://patents.google.com/patent/GB2481819A/en) (Describes the blending mechanism)
+
 ## Instruction format
 
 It appears that the shader binaries are the same between the T600 and T650 targets; the only difference is in how many cycles it takes to execute the ALU instructions (T650 takes half as many due to having twice as many ALU's). The shader consists of a stream of instructions. There are 3 types of instruction words, corresponding to the three pipelines; instruction words can appear in any order. Each instruction is always started only after the previous instruction has fully completed, and like on the Mali 200 PP the pipeline is barreled so a number of threads, potentially with different shaders, are running at once (see next-instruction-type patent). Instruction words are always a multiple of 4 words (128 bits). They can be parsed by reading the type from lowest 4 bits of the first word:
@@ -67,7 +69,7 @@ The first (32-bit) word is a control word which, in addition to the usual 8-bit 
     23: scalar multiply ALU (32 bits)
     25: LUT / multiply ALU 2 (48 bits)
     26: compact output write/branch (16 bits)
-    27: output write/branch (48 bits)
+    27: extended output write/branch (48 bits)
 
 It's not clear why only every other bit is used for the ALU's (fp64?).
 
@@ -219,15 +221,15 @@ Pseudocode for how atan/atan2 is implemented:
 
 To do atan instead of atan2, replace y with 1.0. asin and acos are implemented just like in the Mali 200 PP.
 
-### Compact branch/framebuffer
+### Compact branch/writeout
 
 This field is used for encoding branches, as well as framebuffer writes. So far, we've only figured out branches. The branch offsets possible are rather limited. If you need a greater offset, you need to use the normal encoding instead. The bottom three bits are the opcode:
 
     001 - unconditional branch
     010 - conditional branch
-    111 - write to framebuffer
+    111 - branch or write to framebuffer (see patent)
 
-The rest of the 16-bit word is different depending on the opcode. For conditional branches, it looks like this:
+The rest of the 16-bit word is different depending on the opcode. For conditional branches and framebuffer writes, it looks like this:
 
     0-2: opcode (=010)
     3-6: Type of instruction to branch to
@@ -237,6 +239,7 @@ The rest of the 16-bit word is different depending on the opcode. For conditiona
     14-15: Branch condition
         01 - branch if r31.w is false
         10 - branch if r31.w is true
+        11 - branch if writeout dependencies not yet met
 
 For unconditional branches, it looks like this:
 
@@ -246,7 +249,20 @@ For unconditional branches, it looks like this:
     7-8: unknown
         Always 01 so far.
     9-15: Offset to branch to
-        Unlike for conditional branches, this is zero extended. Only positive offsets are possible. For negative offsets, use conditional branches with an always-true condition. Yes, really.
+        Same as conditional branches.
+        
+### Extended branch/writeout
+
+This is just a larger form of the above, with more space for the offset field in order to encode larger offsets. All of the fields have the same meaning. It looks like this:
+
+    0-2: Opcode
+    3-6: Type of instruction to branch to
+    7-8: Unknown
+        Always 01 so far.
+    9-31: Branch offset
+        Also sign-extended.
+    32-33: Branch condition
+    34-47: 7 copies of branch condition above (Haven't seen anything different so far)
 
 ## Load/store words
 
