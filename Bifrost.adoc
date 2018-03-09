@@ -657,7 +657,8 @@ The address field requires some explanation. Only addresses under 20 can be enco
 | Bit pattern | Meaning
 | `0xxxx`       | Interpolate at address `0xxxx`.
 | `100xx`       | Interpolate at address `100xx`.
-| `101xx`       | Unknown.
+| `10110`       | gl_FragCoord.w
+| `10111`       | gl_FragCoord.z
 | `11xxx`       | The address is indirect, given by an additional source indicated by `xxx`.
 |============================
 
