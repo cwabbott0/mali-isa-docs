@@ -209,8 +209,7 @@ The clause header mainly contains information about "variable-latency" instructi
 | Field                        | Bits
 | unknown                      | 18
 | Register                     | 6
-| Scoreboard dependencies      | 6
-| unknown                      | 2
+| Scoreboard dependencies      | 8
 | Scoreboard entry             | 3
 | Instruction type             | 4
 | unknown                      | 1
@@ -255,29 +254,31 @@ STORE.i32 R0, ptr + 0x8
 }
 ----
 
-The third clause must depend on the first two, although the first two are independent and can be executed in any order. The dependency bits to express this might be:
+The third clause must depend on the first two, although the first two are independent and can be executed in any order. The dependency bits to express this would be:
 
 [options="header"]
 |============================
 | Clause | Scoreboard entry | Scoreboard dependencies
-| 1 | 0 | 000000
-| 2 | 1 | 000000
-| 3 | 2 | 000011
+| 1 | 0 | 00000000
+| 2 | 1 | 00000000
+| 3 | 2 | 00000011
 |============================
 
-Since the first two clauses have no dependencies, they will be executed in-order, one immediately after the other. They will queue up two requests to the load/store unit, with scoreboard tags of 0 and 1, and set bits 0 and 1 of the scoreboard. The first load will clear bit 0 of the scoreboard (based on the tag that was sent with the load) when it is finished, and the second load will clear bit 1. The third clause has bits 0 and 1 set in the dependencies, so it will will wait for bits 0 and 1 to clear before executing. Therefore, it won't run until both of the loads have been completed.
+Since the first two clauses have no dependencies, they will be started in-order, one immediately after the other. They will queue up two requests to the load/store unit, with scoreboard tags of 0 and 1, and set bits 0 and 1 of the scoreboard. The first load will clear bit 0 of the scoreboard (based on the tag that was sent with the load) when it is finished, and the second load will clear bit 1. The third clause has bits 0 and 1 set in the dependencies, so it will will wait for bits 0 and 1 to clear before executing. Therefore, it won't run until both of the loads have been completed.
 
 The final wrinkle in all of this is that the scoreboard dependencies encoded in the clause are actually the dependencies before the _next_ clause is ready to execute. So in the above example, the actual encoding for the clauses would look like:
 
 [options="header"]
 |============================
 | Clause | Scoreboard entry | Scoreboard dependencies
-| 1 | 0 | 000000
-| 2 | 1 | 000011
-| 3 | 2 | 000000
+| 1 | 0 | 00000000
+| 2 | 1 | 00000011
+| 3 | 2 | 00000000
 |============================
 
 The first clause in a program implicitly has no dependencies. This scheme makes it possible to determine whether the next clause can be run before actually fetching it, presumably simplifying the hardware scheduler a little.
+
+In addition to the normal 6 scoreboard entries available for clauses to wait on other clauses, there are two more entries reserved for tile operations. Bit 6 is cleared when depth and stencil values have been written for earlier fragments, so that the depth and stencil tests can safely proceed. The ATEST instruction (see patent) must wait on this bit. Bit 7 is cleared when blending has been completed for earlier fragments and the results written to the tile buffer, so that blending is possible. The BLEND instruction must wait on this bit. The blob makes also BLEND wait on bit 6, but I don't think that's necessary since it also waits on ATEST which waits on bit 6. These scoreboard entries provide similar functionality to the branch-on-no-dependency instruction on Midgard.
 
 === Instruction type
 
