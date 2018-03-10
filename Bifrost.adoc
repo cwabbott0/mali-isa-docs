@@ -361,6 +361,7 @@ The uniform/const port also supports loading a few "special" 64-bit constants th
 | 05 | Alpha-test data (used with ATEST)
 | 06 | gl_FragCoord pointer
 | 08-0f | Blend descriptors 0-7 (used with BLEND to indicate which output to blend with)
+|============================
 
 The gl_FragCoord pointer is a pointer to an array, indexed by gl_SampleID in R61 (see the varying interpolation section), of 16-bit vec2's that when loaded with a normal LOAD instruction, gives the sample (xy) position used for calculating gl_FragCoord.
 
